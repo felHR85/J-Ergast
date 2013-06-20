@@ -1,7 +1,7 @@
 /*
  The MIT License (MIT)
 
-Copyright (c) 2013 Felipe Herranz<felipe.herranz@gmail.com>
+Copyright (c) 2013 Felipe Herranz<felhr85@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,7 +93,7 @@ public class ErgastAPI
 	/**
 	 * A class to handle connection with Ergast API. This nested class provides upper class with
 	 * a response in json format
-	 * @author Felipe Herranz (felipe.herranz@gmail.com)
+	 * @author Felipe Herranz (felhr85@gmail.com)
 	 *
 	 */
 	private static class APIConnection
@@ -157,7 +157,7 @@ public class ErgastAPI
 	
 	/**
 	 * A class to deserialize json data to objects of the package com.felipeDev.ErgastObjects
-	 * @author Felipe Herranz (felipe.herranz@gmail.com)
+	 * @author Felipe Herranz (felhr85@gmail.com)
 	 *
 	 */
 	private class JsonHandler

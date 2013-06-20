@@ -1,7 +1,7 @@
 /*
  The MIT License (MIT)
 
-Copyright (c) 2013 Felipe Herranz<felipe.herranz@gmail.com>
+Copyright (c) 2013 Felipe Herranz<felhr85@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,8 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
- */
-package com.felipeDev.ErgastObjects;
+ */package com.felipeDev.ErgastObjects;
 /**
  * A simple class to encapsulate information about the fastest lap of a driver
  * @author Felipe Herranz (felhr85@gmail.com)
