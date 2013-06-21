@@ -198,6 +198,8 @@ public class ErgastAPI
 		private final static String NAME = "name";
 		private final static String CONSTRUCTOR_TABLE = "ConstructorTable";
 		private final static String CONSTRUCTORS = "Constructors";
+		private final static String TIMINGS = "Timings";
+		private final static String LAPS = "Laps";
 		
 		private JsonHandler()
 		{
@@ -241,7 +243,10 @@ public class ErgastAPI
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
-			JSONArray qualifying = getJsonArray(o,QUALIFYING_RESULTS);
+			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
+			JSONArray races = getJsonArray(raceTable,RACES);
+			JSONObject singleRace = getJsonObject(races,0);
+			JSONArray qualifying = getJsonArray(singleRace,QUALIFYING_RESULTS);
 			List<Position> qResults = getQualifyingResultsList(qualifying);
 			race.setQualifyingResults(qResults);			
 			return race;
@@ -253,9 +258,8 @@ public class ErgastAPI
 		 */
 		public List<Position> getQualifyingResults2(String jsonResponse)
 		{
-			JSONObject o = getJsonObject(jsonResponse);
-			List<Position> qResults = getQualifyingResultsList(getJsonArray(o,QUALIFYING_RESULTS));
-			return qResults;
+			Race race = getQualifyingResults(jsonResponse);
+			return race.getQualifyingResults();
 		}
 		/**
 		 * This methods returns information about constructors.
@@ -275,6 +279,33 @@ public class ErgastAPI
 			}
 			return list;
 			
+		}
+		/**
+		 * This method returns information about laps of a single race. Lap information
+		 * appears embedded in a Race object.
+		 * @param jsonResponse
+		 * @return
+		 */
+		public Race getLaps1(String jsonResponse)
+		{
+			JSONObject o = getJsonObject(jsonResponse);
+			Race race = getRaceObject(o);
+			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
+			JSONArray races = getJsonArray(raceTable,RACES);
+			JSONObject singleRace = getJsonObject(races,0);
+			JSONArray arrayLaps = getJsonArray(singleRace,LAPS);
+			race.setLaps(getLapList(arrayLaps));
+			return race;
+		}
+		/**
+		 * Information about laps of a single race.
+		 * @param jsonResponse
+		 * @return
+		 */
+		public List<Lap> getLaps2(String jsonResponse)
+		{
+			Race race = getLaps1(jsonResponse);
+			return race.getLaps();
 		}
 		
 		// ===========================================================
@@ -374,6 +405,36 @@ public class ErgastAPI
 			String name = (String) constructorObj.get(NAME);
 			String nationality = (String) constructorObj.get(NATIONALITY);
 			return new Constructor(constructorId,url,name,nationality);
+		}
+		
+		private List<Lap> getLapList(JSONArray arrayLap)
+		{
+			int lengthArray = arrayLap.size();
+			List<Lap> laps = new ArrayList<Lap>(lengthArray);
+			List<Timing> timingsList;
+			for(int i = 0;i<=lengthArray -1;i++)
+			{
+				JSONObject lap = getJsonObject(arrayLap,i);
+				int number = Integer.parseInt((String) lap.get(NUMBER));
+				JSONArray timings = getJsonArray(lap,TIMINGS);
+				int lengthTimings = timings.size();
+				timingsList = new ArrayList<Timing>(lengthTimings);
+				for(int j = 0;j<=lengthTimings -1;j++)
+				{
+					timingsList.add(getTimingObject(getJsonObject(timings,j)));
+				}
+				laps.add(new Lap(number,timingsList));
+			}
+			return laps;
+		}
+		
+		
+		private Timing getTimingObject(JSONObject timings)
+		{
+			String driverId = (String) timings.get(DRIVER_ID);
+			int position = Integer.parseInt((String) timings.get(POSITION));
+			String time = (String) timings.get(TIME);
+			return new Timing(driverId,position,time);
 		}
 	}
 

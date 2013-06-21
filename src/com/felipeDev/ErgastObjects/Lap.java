@@ -25,7 +25,9 @@ package com.felipeDev.ErgastObjects;
 
 import java.util.List;
 /**
- * Information about timings in a given lap
+ * <p>Information about timings in a given lap</p>
+ * 
+ * <b>Lap time data is available from the 2011 season onwards</b>
  * @author Felipe Herranz (felhr85@gmail.com)
  *
  */
