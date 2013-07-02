@@ -31,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -51,12 +52,31 @@ public class ErgastAPI
 	/** Maximum number of elements available */
 	private int total;
 	
+	//----TOKENS
+	private final static String CIRCUITS_TOKEN = "circuits";
+	private final static String CONSTRUCTORS_TOKEN = "constructors";
+	private final static String DRIVERS_TOKEN = "drivers";
+	private final static String GRID_TOKEN = "grid";
+	private final static String RESULTS_TOKEN = "results";
+	private final static String FASTESTS_TOKEN = "fastests";
+	private final static String STATUS_TOKEN = "status";
+	private final static String CONSTRUCTOR_STANDINGS_TOKEN = "constructorStandings";
+	private final static String DRIVERS_STANDINGS_TOKEN = "driversStandings";
+	private final static String PITSTOPS_TOKEN = "pitstops";
+	private final static String CURRENT_TOKEN = "current";
+	private final static String LAST_TOKEN = "last";
+	//---- /Tokens
+	
+	private QueryValues queryValues;
+	
 	public ErgastAPI()
 	{
 		this.limit = 30;
 		this.offset = 0;
+		this.queryValues = new QueryValues();
+		
 	}
-	
+	// Getters and setters
 	
 	public int getLimit() 
 	{
@@ -87,8 +107,32 @@ public class ErgastAPI
 	{
 		this.total = total;
 	}
-	// Do I should create a private class to handle string input?? Lets see...
-
+	// Methods to set query parameters
+	public void putValue(String key, String value)
+	{
+		queryValues.putString(key, value);
+	}
+	
+	public String getValue(String key)
+	{
+		return queryValues.getString(key);
+	}
+	
+	public void resetQuery()
+	{
+		queryValues.resetQuery();
+	}
+	
+	/**
+	 * 
+	 * @return A list of selected seasons
+	 */
+	public List<Season> getSeasons()
+	{
+		// TO DO.....
+		//
+		return null;
+	}
 
 	/**
 	 * A class to handle connection with Ergast API. This nested class provides upper class with
@@ -99,18 +143,6 @@ public class ErgastAPI
 	private static class APIConnection
 	{
 		private final static String ERGAST_URI="http://ergast.com/api/f1/";
-		private final static String CIRCUITS_TOKEN = "circuits";
-		private final static String CONSTRUCTORS_TOKEN = "constructors";
-		private final static String DRIVERS_TOKEN = "drivers";
-		private final static String GRID_TOKEN = "grid";
-		private final static String RESULTS_TOKEN = "results";
-		private final static String FASTESTS_TOKEN = "fastests";
-		private final static String STATUS_TOKEN = "status";
-		private final static String CONSTRUCTOR_STANDINGS_TOKEN = "constructorStandings";
-		private final static String DRIVERS_STANDINGS_TOKEN = "driversStandings";
-		private final static String PITSTOPS_TOKEN = "pitstops";
-		private final static String CURRENT_TOKEN = "current";
-		private final static String LAST_TOKEN = "last";
 		
 		private APIConnection()
 		{
@@ -436,6 +468,63 @@ public class ErgastAPI
 			String time = (String) timings.get(TIME);
 			return new Timing(driverId,position,time);
 		}
+	}
+	/**
+	 * This class handles all query values
+	 * @author Felipe Herranz (felhr85@gmail.com)
+	 *
+	 */
+	private class QueryValues
+	{
+		private HashMap<String,String> queryValues;
+		private int numberOfParameters = 7;
+		private boolean isQuery;
+		
+		public QueryValues()
+		{
+			queryValues = new HashMap<String,String>(numberOfParameters);
+			queryValues.put(CIRCUITS_TOKEN, null);
+			queryValues.put(CONSTRUCTORS_TOKEN, null);
+			queryValues.put(DRIVERS_TOKEN, null);
+			queryValues.put(GRID_TOKEN, null);
+			queryValues.put(RESULTS_TOKEN, null);
+			queryValues.put(FASTESTS_TOKEN, null);
+			queryValues.put(STATUS_TOKEN, null);
+			isQuery = false;
+		}
+
+		public boolean isQuery() 
+		{
+			return isQuery;
+		}
+		
+		public void putString(String key,String value)
+		{
+			queryValues.put(key, value);
+			if(isQuery == false)
+			{
+				isQuery = true;
+			}
+			
+		}
+		
+		public String getString(String key)
+		{
+			return queryValues.get(key);
+		}
+		
+		public void resetQuery()
+		{
+			for(String value : queryValues.values())
+			{
+				value = null;
+			}
+			
+			isQuery = false;
+		}
+		
+			
+		
 	}
 
 }
