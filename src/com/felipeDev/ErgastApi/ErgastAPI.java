@@ -32,7 +32,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -65,7 +69,8 @@ public class ErgastAPI
 	private final static String PITSTOPS_TOKEN = "pitstops";
 	private final static String CURRENT_TOKEN = "current";
 	private final static String LAST_TOKEN = "last";
-	//---- /Tokens
+	
+	// Termination files
 	
 	private QueryValues queryValues;
 	
@@ -129,9 +134,50 @@ public class ErgastAPI
 	 */
 	public List<Season> getSeasons()
 	{
-		// TO DO.....
-		//
-		return null;
+		String terminationFile = "seasons.json";
+		String limitString = "?limit=" + String.valueOf(limit);
+		String offsetString = "&offset=" + String.valueOf(offset);
+		
+		if(queryValues.isQuery()) // There is at least one parameter
+		{
+			List<String> keys = new ArrayList<String>();
+			List<String> values = new ArrayList<String>();
+			Iterator<String> e,t;
+			queryValues.getParameters(keys, values);
+			e = keys.iterator();
+			t = values.iterator();
+			String query = "";
+			while(e.hasNext())
+			{
+				String key = e.next();
+				String value = t.next();
+				query = query + key + "/" + value + "/";
+			}
+			String finalString = query + terminationFile + limitString + offsetString;
+			try 
+			{
+				String jsonResponse = APIConnection.getResponse(finalString);
+				List<Season> seasons = JsonHandler.getSeasons(jsonResponse);
+				return seasons;
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+				return null;
+			}
+		}else // There is no parameters. So It performs the basic query. It lists all values
+		{
+			try 
+			{
+				String finalString = terminationFile + limitString + offsetString;
+				String jsonResponse = APIConnection.getResponse(finalString);
+				List<Season> seasons = JsonHandler.getSeasons(jsonResponse);
+				return seasons;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return null;
+			}
+		}
 	}
 
 	/**
@@ -192,7 +238,7 @@ public class ErgastAPI
 	 * @author Felipe Herranz (felhr85@gmail.com)
 	 *
 	 */
-	private class JsonHandler
+	private static class JsonHandler
 	{
 		private final static String TOTAL = "total";
 		private final static String SEASON_TABLE = "SeasonTable";
@@ -246,7 +292,7 @@ public class ErgastAPI
 		 * @param A string with a json response from API
 		 * @return A list of Season objects
 		 */
-		public List<Season> getSeasons(String jsonResponse)
+		public static List<Season> getSeasons(String jsonResponse)
 		{
 			List<Season> seasonList;
 			JSONObject o = getJsonObject(jsonResponse);
@@ -271,7 +317,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return Race object
 		 */
-		public Race getQualifyingResults(String jsonResponse)
+		public static Race getQualifyingResults(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
@@ -288,7 +334,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return List of Position objects
 		 */
-		public List<Position> getQualifyingResults2(String jsonResponse)
+		public static List<Position> getQualifyingResults2(String jsonResponse)
 		{
 			Race race = getQualifyingResults(jsonResponse);
 			return race.getQualifyingResults();
@@ -298,7 +344,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return List of constructor objects
 		 */
-		public List<Constructor> getConstructorInformation(String jsonResponse)
+		public static List<Constructor> getConstructorInformation(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			JSONObject constructorTable = getJsonObject(o,CONSTRUCTOR_TABLE);
@@ -318,7 +364,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return
 		 */
-		public Race getLaps1(String jsonResponse)
+		public static Race getLaps1(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
@@ -334,7 +380,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return
 		 */
-		public List<Lap> getLaps2(String jsonResponse)
+		public static List<Lap> getLaps2(String jsonResponse)
 		{
 			Race race = getLaps1(jsonResponse);
 			return race.getLaps();
@@ -344,31 +390,31 @@ public class ErgastAPI
 		// Private methods
 		// ===========================================================
 		
-		private JSONObject getJsonObject(String jsonResponse)
+		private static JSONObject getJsonObject(String jsonResponse)
 		{
 			JSONObject o = (JSONObject) JSONValue.parse(jsonResponse);
 			return o;
 		}
 		
-		private JSONObject getJsonObject(JSONObject o,String field)
+		private static JSONObject getJsonObject(JSONObject o,String field)
 		{
 			JSONObject obj = (JSONObject) o.get(field);
 			return obj;
 		}
 		
-		private JSONObject getJsonObject(JSONArray array,int index)
+		private static JSONObject getJsonObject(JSONArray array,int index)
 		{
 			JSONObject obj = (JSONObject) array.get(index);
 			return obj;
 		}
 		
-		private JSONArray getJsonArray(JSONObject o,String field)
+		private static JSONArray getJsonArray(JSONObject o,String field)
 		{
 			JSONArray array = (JSONArray) o.get(field);
 			return array;
 		}
 		
-		private Race getRaceObject(JSONObject o)
+		private static Race getRaceObject(JSONObject o)
 		{
 			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
@@ -400,7 +446,7 @@ public class ErgastAPI
 			return raceObj;
 		}
 		
-		private List<Position> getQualifyingResultsList(JSONArray o)
+		private static List<Position> getQualifyingResultsList(JSONArray o)
 		{
 			int lengthArray = o.size();
 			List<Position> qualifyingR = new ArrayList<Position>(lengthArray);
@@ -419,7 +465,7 @@ public class ErgastAPI
 			return qualifyingR;
 		}
 		
-		private Driver getDriverObject(JSONObject driverObj)
+		private static Driver getDriverObject(JSONObject driverObj)
 		{
 			String driverId = (String) driverObj.get(DRIVER_ID);
 			String url = (String) driverObj.get(URL);
@@ -430,7 +476,7 @@ public class ErgastAPI
 			return new Driver(driverId,url,givenName,familyName,dateOfBirth,nationality);
 		}
 		
-		private Constructor getConstructorObject(JSONObject constructorObj)
+		private static Constructor getConstructorObject(JSONObject constructorObj)
 		{
 			String constructorId = (String) constructorObj.get(CONSTRUCTOR_ID);
 			String url = (String) constructorObj.get(URL);
@@ -439,7 +485,7 @@ public class ErgastAPI
 			return new Constructor(constructorId,url,name,nationality);
 		}
 		
-		private List<Lap> getLapList(JSONArray arrayLap)
+		private static List<Lap> getLapList(JSONArray arrayLap)
 		{
 			int lengthArray = arrayLap.size();
 			List<Lap> laps = new ArrayList<Lap>(lengthArray);
@@ -461,7 +507,7 @@ public class ErgastAPI
 		}
 		
 		
-		private Timing getTimingObject(JSONObject timings)
+		private static Timing getTimingObject(JSONObject timings)
 		{
 			String driverId = (String) timings.get(DRIVER_ID);
 			int position = Integer.parseInt((String) timings.get(POSITION));
@@ -517,10 +563,20 @@ public class ErgastAPI
 		{
 			for(String value : queryValues.values())
 			{
-				value = null;
+				queryValues.put(value, null);
 			}
 			
 			isQuery = false;
+		}
+		
+		public void getParameters(List<String> keys, List<String> values)
+		{
+			for(Map.Entry<String, String> entry : queryValues.entrySet() )
+			{
+				keys.add(entry.getKey());
+				values.add(entry.getValue());
+			}
+			resetQuery();
 		}
 		
 			
