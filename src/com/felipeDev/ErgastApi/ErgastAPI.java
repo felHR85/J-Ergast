@@ -52,18 +52,18 @@ public class ErgastAPI
 	private int total;
 	
 	//----TOKENS
-	private final static String CIRCUITS_TOKEN = "circuits";
-	private final static String CONSTRUCTORS_TOKEN = "constructors";
-	private final static String DRIVERS_TOKEN = "drivers";
-	private final static String GRID_TOKEN = "grid";
-	private final static String RESULTS_TOKEN = "results";
-	private final static String FASTESTS_TOKEN = "fastests";
-	private final static String STATUS_TOKEN = "status";
-	private final static String CONSTRUCTOR_STANDINGS_TOKEN = "constructorStandings";
-	private final static String DRIVERS_STANDINGS_TOKEN = "driversStandings";
-	private final static String PITSTOPS_TOKEN = "pitstops";
-	private final static String CURRENT_TOKEN = "current";
-	private final static String LAST_TOKEN = "last";
+	public final static String CIRCUITS_TOKEN = "circuits";
+	public final static String CONSTRUCTORS_TOKEN = "constructors";
+	public final static String DRIVERS_TOKEN = "drivers";
+	public final static String GRID_TOKEN = "grid";
+	public final static String RESULTS_TOKEN = "results";
+	public final static String FASTESTS_TOKEN = "fastests";
+	public final static String STATUS_TOKEN = "status";
+	public final static String CONSTRUCTOR_STANDINGS_TOKEN = "constructorStandings";
+	public final static String DRIVERS_STANDINGS_TOKEN = "driversStandings";
+	public final static String PITSTOPS_TOKEN = "pitstops";
+	public final static String CURRENT_TOKEN = "current";
+	public final static String LAST_TOKEN = "last";
 	
 	// Termination files
 	
@@ -217,7 +217,7 @@ public class ErgastAPI
 				}	
 			}else
 			{
-				Exception e = new Exception("HTTP Code Error: " + String.valueOf(responseCode));
+				Exception e = new Exception("HTTP Code Error: " + String.valueOf(responseCode) + " URL: " + uriUrl);
 				e.printStackTrace();
 				throw e;
 			}
@@ -235,6 +235,7 @@ public class ErgastAPI
 	 */
 	private static class JsonHandler
 	{
+		private final static String MR_DATA = "MRData";
 		private final static String TOTAL = "total";
 		private final static String SEASON_TABLE = "SeasonTable";
 		private final static String SEASONS = "Seasons";
@@ -291,7 +292,8 @@ public class ErgastAPI
 		{
 			List<Season> seasonList;
 			JSONObject o = getJsonObject(jsonResponse);
-			JSONObject seasonTable = getJsonObject(o,SEASON_TABLE);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject seasonTable = getJsonObject(mrData,SEASON_TABLE);
 			JSONArray seasons = getJsonArray(seasonTable,SEASONS);
 			int lengthArray = seasons.size();
 			seasonList = new ArrayList<Season>(lengthArray);
@@ -316,7 +318,8 @@ public class ErgastAPI
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
-			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
 			JSONObject singleRace = getJsonObject(races,0);
 			JSONArray qualifying = getJsonArray(singleRace,QUALIFYING_RESULTS);
@@ -342,7 +345,8 @@ public class ErgastAPI
 		public static List<Constructor> getConstructorInformation(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
-			JSONObject constructorTable = getJsonObject(o,CONSTRUCTOR_TABLE);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject constructorTable = getJsonObject(mrData,CONSTRUCTOR_TABLE);
 			JSONArray constructorsArray = getJsonArray(constructorTable,CONSTRUCTORS);
 			int length = constructorsArray.size();
 			List<Constructor> list = new ArrayList<Constructor>(length);
@@ -363,7 +367,8 @@ public class ErgastAPI
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
-			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
 			JSONObject singleRace = getJsonObject(races,0);
 			JSONArray arrayLaps = getJsonArray(singleRace,LAPS);
@@ -411,7 +416,8 @@ public class ErgastAPI
 		
 		private static Race getRaceObject(JSONObject o)
 		{
-			JSONObject raceTable = getJsonObject(o,RACE_TABLE);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
 			// It will be an array with just one object
 			JSONObject race = getJsonObject(races,0);
@@ -524,13 +530,7 @@ public class ErgastAPI
 		public QueryValues()
 		{
 			queryValues = new HashMap<String,String>(numberOfParameters);
-			queryValues.put(CIRCUITS_TOKEN, null);
-			queryValues.put(CONSTRUCTORS_TOKEN, null);
-			queryValues.put(DRIVERS_TOKEN, null);
-			queryValues.put(GRID_TOKEN, null);
-			queryValues.put(RESULTS_TOKEN, null);
-			queryValues.put(FASTESTS_TOKEN, null);
-			queryValues.put(STATUS_TOKEN, null);
+			putValuesToNull();
 			isQuery = false;
 		}
 
@@ -556,11 +556,7 @@ public class ErgastAPI
 		
 		public void resetQuery()
 		{
-			for(String value : queryValues.values())
-			{
-				queryValues.put(value, null);
-			}
-			
+			putValuesToNull();
 			isQuery = false;
 		}
 		
@@ -568,10 +564,26 @@ public class ErgastAPI
 		{
 			for(Map.Entry<String, String> entry : queryValues.entrySet() )
 			{
-				keys.add(entry.getKey());
-				values.add(entry.getValue());
+				String key = entry.getKey();
+				String value = entry.getValue();
+				if(value != null)
+				{
+					keys.add(key);
+					values.add(value);
+				}
 			}
 			resetQuery();
+		}
+		
+		private void putValuesToNull()
+		{
+			queryValues.put(CIRCUITS_TOKEN, null);
+			queryValues.put(CONSTRUCTORS_TOKEN, null);
+			queryValues.put(DRIVERS_TOKEN, null);
+			queryValues.put(GRID_TOKEN, null);
+			queryValues.put(RESULTS_TOKEN, null);
+			queryValues.put(FASTESTS_TOKEN, null);
+			queryValues.put(STATUS_TOKEN, null);
 		}
 		
 			
