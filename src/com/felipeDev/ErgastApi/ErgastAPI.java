@@ -174,6 +174,17 @@ public class ErgastAPI
 			}
 		}
 	}
+	
+	// TO DO
+	public Race getQualifyingOfRace()
+	{
+		return null;
+	}
+	
+	public List<Position> getQualifyingOfRace2()
+	{
+		return null;
+	}
 
 	/**
 	 * A class to handle connection with Ergast API. This nested class provides upper class with
@@ -295,16 +306,25 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject seasonTable = getJsonObject(mrData,SEASON_TABLE);
 			JSONArray seasons = getJsonArray(seasonTable,SEASONS);
-			int lengthArray = seasons.size();
-			seasonList = new ArrayList<Season>(lengthArray);
-			for(int i = 0;i <= lengthArray -1;i++)
+			
+			if(seasons != null) // if It is a well constructed query but There is not a valid result. Returns null;
 			{
-				JSONObject element = getJsonObject(seasons,i);
-				int year = Integer.parseInt((String) element.get(SEASON));
-				String url = (String) element.get(URL);
-				seasonList.add(new Season(year,url));
+				int lengthArray = seasons.size();
+				seasonList = new ArrayList<Season>(lengthArray);
+				for(int i = 0;i <= lengthArray -1;i++)
+				{
+					JSONObject element = getJsonObject(seasons,i);
+					int year = Integer.parseInt((String) element.get(SEASON));
+					String url = (String) element.get(URL);
+					seasonList.add(new Season(year,url));
+				}
+				return seasonList;
+			}else
+			{
+				return seasonList = new ArrayList<Season>();
 			}
-			return seasonList;
+			
+			
 		}
 		
 		/**
@@ -318,14 +338,21 @@ public class ErgastAPI
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
-			JSONObject mrData = getJsonObject(o,MR_DATA);
-			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
-			JSONArray races = getJsonArray(raceTable,RACES);
-			JSONObject singleRace = getJsonObject(races,0);
-			JSONArray qualifying = getJsonArray(singleRace,QUALIFYING_RESULTS);
-			List<Position> qResults = getQualifyingResultsList(qualifying);
-			race.setQualifyingResults(qResults);			
-			return race;
+			if(race != null)
+			{
+				JSONObject mrData = getJsonObject(o,MR_DATA);
+				JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
+				JSONArray races = getJsonArray(raceTable,RACES);
+				JSONObject singleRace = getJsonObject(races,0);
+				JSONArray qualifying = getJsonArray(singleRace,QUALIFYING_RESULTS);
+				List<Position> qResults = getQualifyingResultsList(qualifying);
+				race.setQualifyingResults(qResults);			
+				return race;
+			}else
+			{
+				return null;
+			}
+			
 		}
 		/**
 		 * It return just qualifying data, ignoring race information
@@ -335,7 +362,15 @@ public class ErgastAPI
 		public static List<Position> getQualifyingResults2(String jsonResponse)
 		{
 			Race race = getQualifyingResults(jsonResponse);
-			return race.getQualifyingResults();
+			if(race != null)
+			{
+				return race.getQualifyingResults();
+			}else
+			{
+				List<Position> positions = new ArrayList<Position>();
+				return positions;
+			}
+			
 		}
 		/**
 		 * This methods returns information about constructors.
@@ -348,13 +383,21 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject constructorTable = getJsonObject(mrData,CONSTRUCTOR_TABLE);
 			JSONArray constructorsArray = getJsonArray(constructorTable,CONSTRUCTORS);
-			int length = constructorsArray.size();
-			List<Constructor> list = new ArrayList<Constructor>(length);
-			for(int i=0;i<= length -1;i++)
+			if(constructorsArray.size() > 0)
 			{
-				list.add(getConstructorObject(getJsonObject(constructorsArray,i)));
+				int length = constructorsArray.size();
+				List<Constructor> list = new ArrayList<Constructor>(length);
+				for(int i=0;i<= length -1;i++)
+				{
+					list.add(getConstructorObject(getJsonObject(constructorsArray,i)));
+				}
+				return list;
+			}else
+			{
+				List<Constructor> list = new ArrayList<Constructor>();
+				return list;
 			}
-			return list;
+			
 			
 		}
 		/**
@@ -370,10 +413,17 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
-			JSONObject singleRace = getJsonObject(races,0);
-			JSONArray arrayLaps = getJsonArray(singleRace,LAPS);
-			race.setLaps(getLapList(arrayLaps));
-			return race;
+			if(races.size() > 0)
+			{
+				JSONObject singleRace = getJsonObject(races,0);
+				JSONArray arrayLaps = getJsonArray(singleRace,LAPS);
+				race.setLaps(getLapList(arrayLaps));
+				return race;
+			}else
+			{
+				return null;
+			}
+			
 		}
 		/**
 		 * Information about laps of a single race.
@@ -383,7 +433,15 @@ public class ErgastAPI
 		public static List<Lap> getLaps2(String jsonResponse)
 		{
 			Race race = getLaps1(jsonResponse);
-			return race.getLaps();
+			if(race != null)
+			{
+				return race.getLaps();
+			}else
+			{
+				List<Lap> laps = new ArrayList<Lap>();
+				return laps;
+			}
+			
 		}
 		
 		// ===========================================================
@@ -419,32 +477,37 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
-			// It will be an array with just one object
-			JSONObject race = getJsonObject(races,0);
-			
-			int season = Integer.parseInt((String) race.get(SEASON));
-			int round = Integer.parseInt((String) race.get(ROUND));
-			String url = (String) race.get(URL);
-			String raceName = (String) race.get(RACE_NAME);
-			String date = (String) race.get(DATE);
-			String time = (String) race.get(TIME);
-			
-			JSONObject circuit = getJsonObject(race,CIRCUIT);
-			String circuitId = (String) circuit.get(CIRCUIT_ID);
-			String urlCircuit = (String) circuit.get(URL);
-			String circuitName = (String) circuit.get(CIRCUIT_NAME);
-			
-			
-			JSONObject location = getJsonObject(circuit,LOCATION);
-			float lat = Float.valueOf((String) location.get(LAT));
-			float longitude = Float.valueOf((String) location.get(LONG));
-			String locality = (String) location.get(LOCALITY);
-			String country = (String) location.get(COUNTRY);
-			Location loc = new Location(lat,longitude,locality,country); 
-			
-			Circuit circ = new Circuit(circuitId,urlCircuit,circuitName,loc);
-			Race raceObj = new Race(season,round,url,raceName,circ,date,time);
-			return raceObj;
+			if(races.size() > 0)
+			{
+				JSONObject race = getJsonObject(races,0);
+				
+				int season = Integer.parseInt((String) race.get(SEASON));
+				int round = Integer.parseInt((String) race.get(ROUND));
+				String url = (String) race.get(URL);
+				String raceName = (String) race.get(RACE_NAME);
+				String date = (String) race.get(DATE);
+				String time = (String) race.get(TIME);
+				
+				JSONObject circuit = getJsonObject(race,CIRCUIT);
+				String circuitId = (String) circuit.get(CIRCUIT_ID);
+				String urlCircuit = (String) circuit.get(URL);
+				String circuitName = (String) circuit.get(CIRCUIT_NAME);
+				
+				
+				JSONObject location = getJsonObject(circuit,LOCATION);
+				float lat = Float.valueOf((String) location.get(LAT));
+				float longitude = Float.valueOf((String) location.get(LONG));
+				String locality = (String) location.get(LOCALITY);
+				String country = (String) location.get(COUNTRY);
+				Location loc = new Location(lat,longitude,locality,country); 
+				
+				Circuit circ = new Circuit(circuitId,urlCircuit,circuitName,loc);
+				Race raceObj = new Race(season,round,url,raceName,circ,date,time);
+				return raceObj;
+			}else
+			{
+				return null;
+			}	
 		}
 		
 		private static List<Position> getQualifyingResultsList(JSONArray o)
