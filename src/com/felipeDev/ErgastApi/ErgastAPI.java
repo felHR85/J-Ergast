@@ -306,12 +306,11 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject seasonTable = getJsonObject(mrData,SEASON_TABLE);
 			JSONArray seasons = getJsonArray(seasonTable,SEASONS);
-			
-			if(seasons != null) // if It is a well constructed query but There is not a valid result. Returns null;
+			int lengthSize = seasons.size();
+			if(lengthSize > 0) // if It is a well constructed query but There is not a valid result. Returns null;
 			{
-				int lengthArray = seasons.size();
-				seasonList = new ArrayList<Season>(lengthArray);
-				for(int i = 0;i <= lengthArray -1;i++)
+				seasonList = new ArrayList<Season>(lengthSize);
+				for(int i = 0;i <= lengthSize -1;i++)
 				{
 					JSONObject element = getJsonObject(seasons,i);
 					int year = Integer.parseInt((String) element.get(SEASON));
@@ -323,8 +322,6 @@ public class ErgastAPI
 			{
 				return seasonList = new ArrayList<Season>();
 			}
-			
-			
 		}
 		
 		/**
