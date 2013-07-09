@@ -64,9 +64,7 @@ public class ErgastAPI
 	public final static String PITSTOPS_TOKEN = "pitstops";
 	public final static String CURRENT_TOKEN = "current";
 	public final static String LAST_TOKEN = "last";
-	
-	// Termination files
-	
+
 	private QueryValues queryValues;
 	
 	public ErgastAPI()
@@ -135,19 +133,7 @@ public class ErgastAPI
 		
 		if(queryValues.isQuery()) // There is at least one parameter
 		{
-			List<String> keys = new ArrayList<String>();
-			List<String> values = new ArrayList<String>();
-			Iterator<String> e,t;
-			queryValues.getParameters(keys, values);
-			e = keys.iterator();
-			t = values.iterator();
-			String query = "";
-			while(e.hasNext())
-			{
-				String key = e.next();
-				String value = t.next();
-				query = query + key + "/" + value + "/";
-			}
+			String query = getQueryString();
 			String finalString = query + terminationFile + limitString + offsetString;
 			try 
 			{
@@ -175,15 +161,150 @@ public class ErgastAPI
 		}
 	}
 	
-	// TO DO
 	public Race getQualifyingOfRace()
 	{
-		return null;
+		String terminationFile = "qualifying.json";
+		String limitString = "?limit=" + String.valueOf(limit);
+		String offsetString = "&offset=" + String.valueOf(offset);
+		
+		if(queryValues.isQuery()) // There is at least one parameter
+		{
+			String query = getQueryString();
+			String finalString = query + terminationFile + limitString + offsetString;
+			try
+			{
+				String jsonResponse = APIConnection.getResponse(finalString);
+				Race race = JsonHandler.getQualifyingResults(jsonResponse);
+				return race;
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		}else
+		{
+			try
+			{
+				String finalString = terminationFile + limitString + offsetString;
+				String jsonResponse = APIConnection.getResponse(finalString);
+				Race race = JsonHandler.getQualifyingResults(jsonResponse);
+				return race;
+				
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		}
 	}
 	
 	public List<Position> getQualifyingOfRace2()
 	{
-		return null;
+		Race race = getQualifyingOfRace();
+		return race.getQualifyingResults();
+	}
+	
+	
+	public List<Constructor> getConstructorInfo()
+	{
+		String terminationFile = "constructors.json";
+		String limitString = "?limit=" + String.valueOf(limit);
+		String offsetString = "&offset=" + String.valueOf(offset);
+		if(queryValues.isQuery())
+		{
+			String query = getQueryString();
+			String finalString = query + terminationFile + limitString + offsetString;
+			try
+			{
+				String jsonResponse = APIConnection.getResponse(finalString);
+				List<Constructor> constructors = JsonHandler.getConstructorInformation(jsonResponse);
+				return constructors;
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			
+		}else
+		{
+			try
+			{
+				String finalString = terminationFile + limitString + offset;
+				String jsonResponse = APIConnection.getResponse(finalString);
+				List<Constructor> constructors = JsonHandler.getConstructorInformation(jsonResponse);
+				return constructors;
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		}
+	}
+	
+	
+	public Race getLapTimes()
+	{
+		String terminationFile = "laps.json";
+		String limitString = "?limit=" + String.valueOf(limit);
+		String offsetString = "&offset=" + String.valueOf(offset);
+		if(queryValues.isQuery())
+		{
+			String query = getQueryString();
+			String finalString = query + terminationFile + limitString + offsetString;
+			try
+			{
+				String jsonResponse = APIConnection.getResponse(finalString);
+				Race race = JsonHandler.getLaps(jsonResponse);
+				return race;
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+		}else
+		{
+			try
+			{
+				String finalString = terminationFile + limitString + offsetString;
+				String jsonResponse = APIConnection.getResponse(finalString);
+				Race race = JsonHandler.getLaps(jsonResponse);
+				return race;
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+				return null;
+			}
+			
+		}
+	}
+	
+	
+	public List<Lap> getLapTimes2()
+	{
+		Race race = getLapTimes();
+		return race.getLaps();
+	}
+	
+	// ===========================================================
+	// Private methods
+	// ===========================================================
+	
+	private String getQueryString()
+	{
+		List<String> keys = new ArrayList<String>();
+		List<String> values = new ArrayList<String>();
+		Iterator<String> e,t;
+		queryValues.getParameters(keys, values);
+		e = keys.iterator();
+		t = values.iterator();
+		String query = "";
+		while(e.hasNext())
+		{
+			String key = e.next();
+			String value = t.next();
+			query = query + key + "/" + value + "/";
+		}
+		return query;
 	}
 
 	/**
@@ -351,24 +472,7 @@ public class ErgastAPI
 			}
 			
 		}
-		/**
-		 * It return just qualifying data, ignoring race information
-		 * @param jsonResponse
-		 * @return List of Position objects
-		 */
-		public static List<Position> getQualifyingResults2(String jsonResponse)
-		{
-			Race race = getQualifyingResults(jsonResponse);
-			if(race != null)
-			{
-				return race.getQualifyingResults();
-			}else
-			{
-				List<Position> positions = new ArrayList<Position>();
-				return positions;
-			}
-			
-		}
+		
 		/**
 		 * This methods returns information about constructors.
 		 * @param jsonResponse
@@ -403,7 +507,7 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return
 		 */
-		public static Race getLaps1(String jsonResponse)
+		public static Race getLaps(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
 			Race race = getRaceObject(o);
@@ -429,7 +533,7 @@ public class ErgastAPI
 		 */
 		public static List<Lap> getLaps2(String jsonResponse)
 		{
-			Race race = getLaps1(jsonResponse);
+			Race race = getLaps(jsonResponse);
 			if(race != null)
 			{
 				return race.getLaps();
