@@ -77,7 +77,4 @@ public class Standing
 		this.wins = wins;
 	}
 	
-	
-	
-	
 }

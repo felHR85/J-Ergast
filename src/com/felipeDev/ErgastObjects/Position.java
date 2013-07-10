@@ -26,7 +26,7 @@ THE SOFTWARE.
  * driver who achieve it, the number that He wears and objects with more information about the driver itself and constructor
  * Also contains the best lap times in each Q</p>
  * <b>Note: Qualifying results are only fully supported from the 2003 season onwards.</b>
- * @author Felipe Herranz <felhr85@gmail.com>
+ * @author Felipe Herranz (felhr85@gmail.com)
  *
  */
 public class Position 

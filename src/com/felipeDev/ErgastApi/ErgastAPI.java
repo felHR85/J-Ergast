@@ -64,6 +64,8 @@ public class ErgastAPI
 	public final static String PITSTOPS_TOKEN = "pitstops";
 	public final static String CURRENT_TOKEN = "current";
 	public final static String LAST_TOKEN = "last";
+	public final static String YEAR = "year";
+	public final static String ROUND = "round";
 
 	private QueryValues queryValues;
 	
@@ -161,7 +163,7 @@ public class ErgastAPI
 		}
 	}
 	
-	public Race getQualifyingOfRace()
+	public List<Race> getQualifyingOfRace()
 	{
 		String terminationFile = "qualifying.json";
 		String limitString = "?limit=" + String.valueOf(limit);
@@ -174,8 +176,8 @@ public class ErgastAPI
 			try
 			{
 				String jsonResponse = APIConnection.getResponse(finalString);
-				Race race = JsonHandler.getQualifyingResults(jsonResponse);
-				return race;
+				List<Race> races = JsonHandler.getQualifyingResults(jsonResponse);
+				return races;
 			}catch(Exception e)
 			{
 				e.printStackTrace();
@@ -187,8 +189,8 @@ public class ErgastAPI
 			{
 				String finalString = terminationFile + limitString + offsetString;
 				String jsonResponse = APIConnection.getResponse(finalString);
-				Race race = JsonHandler.getQualifyingResults(jsonResponse);
-				return race;
+				List<Race> races = JsonHandler.getQualifyingResults(jsonResponse);
+				return races;
 				
 			}catch(Exception e)
 			{
@@ -198,10 +200,17 @@ public class ErgastAPI
 		}
 	}
 	
-	public List<Position> getQualifyingOfRace2()
+	public List<Qualifying> getQualifyingOfRace2()
 	{
-		Race race = getQualifyingOfRace();
-		return race.getQualifyingResults();
+		List<Race> races = getQualifyingOfRace();
+		int sizeRaces = races.size();
+		List<Qualifying> qualy = new ArrayList<Qualifying>(sizeRaces);
+		for(int i=0;i <= sizeRaces -1;i++)
+		{
+			List<Position> positions = races.get(i).getQualifyingResults();
+			qualy.add(new Qualifying(positions));
+		}
+		return qualy;
 	}
 	
 	
@@ -285,6 +294,22 @@ public class ErgastAPI
 		return race.getLaps();
 	}
 	
+	
+	public List<StandingList> getDriverStandings()
+	{
+		// TO DO
+		return null;
+	}
+	
+	
+	public List<StandingList> getConstructorStandings()
+	{
+		// TO DO
+		return null;
+	}
+	
+	
+	
 	// ===========================================================
 	// Private methods
 	// ===========================================================
@@ -293,16 +318,32 @@ public class ErgastAPI
 	{
 		List<String> keys = new ArrayList<String>();
 		List<String> values = new ArrayList<String>();
+		String query = "";
+		String year = getValue(YEAR);
+		String round = getValue(ROUND);
+		// If year or round is set. Special treatment is needed.
+		if(year != null)
+		{
+			query = query + year + "/";
+		}
+		
+		if(round != null)
+		{
+			query = query + round + "/";
+		}
 		Iterator<String> e,t;
 		queryValues.getParameters(keys, values);
 		e = keys.iterator();
 		t = values.iterator();
-		String query = "";
+		
 		while(e.hasNext())
 		{
 			String key = e.next();
 			String value = t.next();
-			query = query + key + "/" + value + "/";
+			if(key.equals(YEAR) == false && key.equals(ROUND) == false)
+			{
+				query = query + key + "/" + value + "/";
+			}
 		}
 		return query;
 	}
@@ -406,6 +447,12 @@ public class ErgastAPI
 		private final static String CONSTRUCTORS = "Constructors";
 		private final static String TIMINGS = "Timings";
 		private final static String LAPS = "Laps";
+		private final static String STANDINGS_TABLE = "StandingsTable";
+		private final static String STANDINGS_LIST = "StandingsLists";
+		private final static String DRIVER_STANDINGS = "DriverStandings";
+		private final static String CONSTRUCTOR_STANDINGS = "ConstructorStandings";
+		private final static String POINTS = "points";
+		private final static String WINS = "wins";
 		
 		private JsonHandler()
 		{
@@ -452,23 +499,29 @@ public class ErgastAPI
 		 * @param jsonResponse
 		 * @return Race object
 		 */
-		public static Race getQualifyingResults(String jsonResponse)
+		public static List<Race> getQualifyingResults(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
-			Race race = getRaceObject(o);
-			if(race != null)
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
+			JSONArray races = getJsonArray(raceTable,RACES);
+			int sizeRaces = races.size();
+			List<Race> raceList = new ArrayList<Race>(sizeRaces);
+			if(sizeRaces > 0)
 			{
-				JSONObject mrData = getJsonObject(o,MR_DATA);
-				JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
-				JSONArray races = getJsonArray(raceTable,RACES);
-				JSONObject singleRace = getJsonObject(races,0);
-				JSONArray qualifying = getJsonArray(singleRace,QUALIFYING_RESULTS);
-				List<Position> qResults = getQualifyingResultsList(qualifying);
-				race.setQualifyingResults(qResults);			
-				return race;
+				for(int i = 0;i<= sizeRaces -1;i++)
+				{
+					JSONObject item = getJsonObject(races,i);
+					Race race = getRaceObject(item);
+					JSONArray qualifying = getJsonArray(item,QUALIFYING_RESULTS);
+					List<Position> qResults = getQualifyingResultsList(qualifying);
+					race.setQualifyingResults(qResults);
+					raceList.add(race);
+				}
+				return raceList;
 			}else
 			{
-				return null;
+				return new ArrayList<Race>();
 			}
 			
 		}
@@ -526,24 +579,32 @@ public class ErgastAPI
 			}
 			
 		}
-		/**
-		 * Information about laps of a single race.
-		 * @param jsonResponse
-		 * @return
-		 */
-		public static List<Lap> getLaps2(String jsonResponse)
+		
+		public List<StandingList> getStandings(String jsonResponse)
 		{
-			Race race = getLaps(jsonResponse);
-			if(race != null)
+			List<StandingList> list;
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject standingsTable = getJsonObject(mrData,STANDINGS_TABLE);
+			JSONArray standingsList = getJsonArray(standingsTable,STANDINGS_LIST);
+			int sizeStandings = standingsList.size();
+			list = new ArrayList<StandingList>(sizeStandings);
+			if(sizeStandings > 0)
 			{
-				return race.getLaps();
+				List<StandingList> standings = new ArrayList<StandingList>(sizeStandings);
+				for(int i = 0;i<= sizeStandings-1;i++)
+				{
+					JSONObject item = getJsonObject(standingsList,i);
+					list.add(getStandingListObject(item));
+				}
+				return list;
 			}else
 			{
-				List<Lap> laps = new ArrayList<Lap>();
-				return laps;
+				list = new ArrayList<StandingList>();
+				return list;
 			}
-			
 		}
+		
 		
 		// ===========================================================
 		// Private methods
@@ -575,40 +636,30 @@ public class ErgastAPI
 		
 		private static Race getRaceObject(JSONObject o)
 		{
-			JSONObject mrData = getJsonObject(o,MR_DATA);
-			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
-			JSONArray races = getJsonArray(raceTable,RACES);
-			if(races.size() > 0)
-			{
-				JSONObject race = getJsonObject(races,0);
 				
-				int season = Integer.parseInt((String) race.get(SEASON));
-				int round = Integer.parseInt((String) race.get(ROUND));
-				String url = (String) race.get(URL);
-				String raceName = (String) race.get(RACE_NAME);
-				String date = (String) race.get(DATE);
-				String time = (String) race.get(TIME);
+			int season = Integer.parseInt((String) o.get(SEASON));
+			int round = Integer.parseInt((String) o.get(ROUND));
+			String url = (String) o.get(URL);
+			String raceName = (String) o.get(RACE_NAME);
+			String date = (String) o.get(DATE);
+			String time = (String) o.get(TIME);
 				
-				JSONObject circuit = getJsonObject(race,CIRCUIT);
-				String circuitId = (String) circuit.get(CIRCUIT_ID);
-				String urlCircuit = (String) circuit.get(URL);
-				String circuitName = (String) circuit.get(CIRCUIT_NAME);
+			JSONObject circuit = getJsonObject(o,CIRCUIT);
+			String circuitId = (String) circuit.get(CIRCUIT_ID);
+			String urlCircuit = (String) circuit.get(URL);
+			String circuitName = (String) circuit.get(CIRCUIT_NAME);
 				
 				
-				JSONObject location = getJsonObject(circuit,LOCATION);
-				float lat = Float.valueOf((String) location.get(LAT));
-				float longitude = Float.valueOf((String) location.get(LONG));
-				String locality = (String) location.get(LOCALITY);
-				String country = (String) location.get(COUNTRY);
-				Location loc = new Location(lat,longitude,locality,country); 
+			JSONObject location = getJsonObject(circuit,LOCATION);
+			float lat = Float.valueOf((String) location.get(LAT));
+			float longitude = Float.valueOf((String) location.get(LONG));
+			String locality = (String) location.get(LOCALITY);
+			String country = (String) location.get(COUNTRY);
+			Location loc = new Location(lat,longitude,locality,country); 
 				
-				Circuit circ = new Circuit(circuitId,urlCircuit,circuitName,loc);
-				Race raceObj = new Race(season,round,url,raceName,circ,date,time);
-				return raceObj;
-			}else
-			{
-				return null;
-			}	
+			Circuit circ = new Circuit(circuitId,urlCircuit,circuitName,loc);
+			Race raceObj = new Race(season,round,url,raceName,circ,date,time);
+			return raceObj;
 		}
 		
 		private static List<Position> getQualifyingResultsList(JSONArray o)
@@ -679,6 +730,63 @@ public class ErgastAPI
 			String time = (String) timings.get(TIME);
 			return new Timing(driverId,position,time);
 		}
+		
+		
+		private static StandingList getStandingListObject(JSONObject standingList)
+		{
+			List<Standing> list;
+			int season = Integer.parseInt((String) standingList.get(SEASON));
+			int round = Integer.parseInt((String) standingList.get(ROUND));
+			if(getJsonArray(standingList,DRIVER_STANDINGS) != null)
+			{
+				JSONArray standings = getJsonArray(standingList,DRIVER_STANDINGS);
+				int standingsSize = standings.size();
+				list = new ArrayList<Standing>(standingsSize);
+				for(int i = 0;i <= standingsSize - 1;i++)
+				{
+					JSONObject item = getJsonObject(standings, i);
+					Standing standing = getStandingObject(item);
+					list.add(standing);
+				}
+				
+			}else
+			{
+				JSONArray standings = getJsonArray(standingList,CONSTRUCTOR_STANDINGS);
+				int standingsSize = standings.size();
+				list = new ArrayList<Standing>(standingsSize);
+				for(int i = 0;i <= standingsSize - 1;i++)
+				{
+					JSONObject item = getJsonObject(standings, i);
+					Standing standing = getStandingObject(item);
+					list.add(standing);
+				}
+				
+			}
+			return new StandingList(season,round,list);
+			
+		}
+		
+		
+		
+		private static Standing getStandingObject(JSONObject standing)
+		{
+			int position = Integer.parseInt((String) standing.get(POSITION));
+			int points = Integer.parseInt((String) standing.get(POINTS));
+			int wins = Integer.parseInt((String) standing.get(WINS));
+			if(getJsonObject(standing,DRIVER) != null)
+			{
+				Driver driver = getDriverObject(getJsonObject(standing,DRIVER));
+				Constructor constructor = getConstructorObject(getJsonObject(standing,CONSTRUCTOR));
+				Standing driverStanding = new DriverStanding(position,points,wins,driver,constructor);
+				return driverStanding;
+			}else
+			{
+				Constructor constructor = getConstructorObject(getJsonObject(standing,CONSTRUCTOR));
+				Standing constructorStanding = new ConstructorStanding(position,points,wins,constructor);
+				return constructorStanding;
+			}
+			
+		}
 	}
 	/**
 	 * This class handles all query values
@@ -688,7 +796,7 @@ public class ErgastAPI
 	private class QueryValues
 	{
 		private HashMap<String,String> queryValues;
-		private int numberOfParameters = 7;
+		private int numberOfParameters = 9;
 		private boolean isQuery;
 		
 		public QueryValues()
@@ -748,6 +856,8 @@ public class ErgastAPI
 			queryValues.put(RESULTS_TOKEN, null);
 			queryValues.put(FASTESTS_TOKEN, null);
 			queryValues.put(STATUS_TOKEN, null);
+			queryValues.put(YEAR, null);
+			queryValues.put(ROUND, null);
 		}
 		
 			
