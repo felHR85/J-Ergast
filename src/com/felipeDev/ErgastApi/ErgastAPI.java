@@ -281,6 +281,76 @@ public class ErgastAPI
 	}
 	
 	
+	public List<Circuit> getCircuitInfo()
+	{
+		String terminationFile = "circuits.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			List<Circuit> circuits = JsonHandler.getCircuits(jsonResponse);
+			return circuits;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	public Race getPitStopsInfo()
+	{
+		String terminationFile = "pitstops.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			Race race = JsonHandler.getPitStops(jsonResponse);
+			return race;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public Race getPitStopsInfo(int pitStopNumber)
+	{
+		String terminationFile = "pitstops/" + String.valueOf(pitStopNumber) + ".json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			Race race = JsonHandler.getPitStops(jsonResponse);
+			return race;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public List<PitStop> getPitStopsInfo2()
+	{
+		Race race = getPitStopsInfo();
+		if(race != null)
+		{
+			return race.getPitStops();
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public List<PitStop> getPitStopsInfo2(int pitStopNumber)
+	{
+		Race race = getPitStopsInfo(pitStopNumber);
+		if(race != null)
+		{
+			return race.getPitStops();
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
 	// ===========================================================
 	// Private methods
 	// ===========================================================
@@ -332,7 +402,8 @@ public class ErgastAPI
 			{
 				String jsonResponse = APIConnection.getResponse(finalString);
 				return jsonResponse;
-			} catch (Exception e1) {
+			} catch (Exception e1) 
+			{
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 				return null;
@@ -344,7 +415,8 @@ public class ErgastAPI
 				String finalString = terminationFile + limitString + offsetString;
 				String jsonResponse = APIConnection.getResponse(finalString);
 				return jsonResponse;
-			} catch (Exception e) {
+			} catch (Exception e) 
+			{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 				return null;
@@ -425,7 +497,7 @@ public class ErgastAPI
 		private final static String CIRCUIT = "Circuit";
 		private final static String CIRCUIT_ID = "circuitId";
 		private final static String CIRCUIT_NAME = "circuitName";
-		private final static String LOCATION = "location";
+		private final static String LOCATION = "Location";
 		private final static String LAT = "lat";
 		private final static String LONG = "long";
 		private final static String LOCALITY = "locality";
@@ -457,6 +529,12 @@ public class ErgastAPI
 		private final static String CONSTRUCTOR_STANDINGS = "ConstructorStandings";
 		private final static String POINTS = "points";
 		private final static String WINS = "wins";
+		private final static String CIRCUIT_TABLE = "CircuitTable";
+		private final static String CIRCUITS = "Circuits";
+		private final static String LAP = "lap";
+		private final static String STOP = "stop";
+		private final static String DURATION = "duration";
+		private final static String PIT_STOPS = "PitStops";
 		
 		private JsonHandler()
 		{
@@ -567,13 +645,13 @@ public class ErgastAPI
 		public static Race getLaps(String jsonResponse)
 		{
 			JSONObject o = getJsonObject(jsonResponse);
-			Race race = getRaceObject(o);
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray races = getJsonArray(raceTable,RACES);
 			if(races.size() > 0)
 			{
 				JSONObject singleRace = getJsonObject(races,0);
+				Race race = getRaceObject(singleRace);
 				JSONArray arrayLaps = getJsonArray(singleRace,LAPS);
 				race.setLaps(getLapList(arrayLaps));
 				return race;
@@ -608,6 +686,58 @@ public class ErgastAPI
 			}
 		}
 		
+		public static List<Circuit> getCircuits(String jsonResponse)
+		{
+			List<Circuit> list;
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject circuitTable = getJsonObject(mrData,CIRCUIT_TABLE);
+			JSONArray circuits = getJsonArray(circuitTable,CIRCUITS);
+			int lengthCircuits = circuits.size();
+			list = new ArrayList<Circuit>(lengthCircuits);
+			if(lengthCircuits > 0)
+			{
+				for(int i = 0;i <= lengthCircuits -1;i++)
+				{
+					JSONObject item = getJsonObject(circuits,i);
+					list.add(getCircuitObject(item));
+				}
+				return list;
+			}else
+			{
+				return list = new ArrayList<Circuit>();
+			}
+		}
+		
+		
+		public static Race getPitStops(String jsonResponse)
+		{
+			List<PitStop> list;
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
+			JSONArray raceArray = getJsonArray(raceTable,RACES);
+			JSONObject raceElement = getJsonObject(raceArray,0); // It will be always an array with a single object. I swear it!!!
+			Race race = getRaceObject(raceElement);
+			JSONArray pitStopsArray = getJsonArray(raceElement,PIT_STOPS);
+			int lengthPitStops = pitStopsArray.size();
+			list = new ArrayList<PitStop>(lengthPitStops);
+			if(lengthPitStops > 0)
+			{
+				for(int i = 0;i <= lengthPitStops -1;i++)
+				{
+					JSONObject item = getJsonObject(pitStopsArray,i);
+					list.add(getPitStopObject(item));
+				}
+				race.setPitStops(list);
+				return race;
+			}else
+			{
+				list = new ArrayList<PitStop>();
+				race.setPitStops(list);
+				return race;
+			}
+		}
 		
 		// ===========================================================
 		// Private methods
@@ -647,20 +777,8 @@ public class ErgastAPI
 			String date = (String) o.get(DATE);
 			String time = (String) o.get(TIME);
 				
-			JSONObject circuit = getJsonObject(o,CIRCUIT);
-			String circuitId = (String) circuit.get(CIRCUIT_ID);
-			String urlCircuit = (String) circuit.get(URL);
-			String circuitName = (String) circuit.get(CIRCUIT_NAME);
-				
-				
-			JSONObject location = getJsonObject(circuit,LOCATION);
-			float lat = Float.valueOf((String) location.get(LAT));
-			float longitude = Float.valueOf((String) location.get(LONG));
-			String locality = (String) location.get(LOCALITY);
-			String country = (String) location.get(COUNTRY);
-			Location loc = new Location(lat,longitude,locality,country); 
-				
-			Circuit circ = new Circuit(circuitId,urlCircuit,circuitName,loc);
+			JSONObject circuitObj = getJsonObject(o,CIRCUIT);
+			Circuit circ = getCircuitObject(circuitObj);
 			Race raceObj = new Race(season,round,url,raceName,circ,date,time);
 			return raceObj;
 		}
@@ -789,6 +907,39 @@ public class ErgastAPI
 				return constructorStanding;
 			}
 			
+		}
+		
+		
+		private static Circuit getCircuitObject(JSONObject circuitObj)
+		{
+			String circuitId = (String) circuitObj.get(CIRCUIT_ID);
+			String url = (String) circuitObj.get(URL);
+			String circuitName = (String) circuitObj.get(CIRCUIT_NAME);
+			JSONObject locObj = getJsonObject(circuitObj,LOCATION);
+			Location loc = getLocationObject(locObj);
+			return new Circuit(circuitId,url,circuitName,loc);
+		}
+		
+		
+		private static Location getLocationObject(JSONObject locationObj)
+		{
+			float lat = Float.valueOf((String) locationObj.get(LAT));
+			float longitude = Float.valueOf((String) locationObj.get(LONG));
+			String locality = (String) locationObj.get(LOCALITY);
+			String country = (String) locationObj.get(COUNTRY);
+			Location loc = new Location(lat,longitude,locality,country);
+			return loc;
+		}
+		
+		
+		private static PitStop getPitStopObject(JSONObject pitStopObj)
+		{
+			String driverId = (String) pitStopObj.get(DRIVER_ID);
+			int lap = (Integer) pitStopObj.get(LAP);
+			int stop = (Integer) pitStopObj.get(STOP);
+			String time = (String) pitStopObj.get(TIME);
+			String duration = (String) pitStopObj.get(DURATION);
+			return new PitStop(driverId,lap,stop,time,duration);
 		}
 	}
 	/**

@@ -31,14 +31,16 @@ public class PitStop
 {
 	private String driverId;
 	private int lap;
+	private int stop;
 	private String time;
 	private String duration;
 	
 	
-	public PitStop(String driverId, int lap, String time, String duration)
+	public PitStop(String driverId, int lap,int stop, String time, String duration)
 	{
 		this.driverId = driverId;
 		this.lap = lap;
+		this.stop = stop;
 		this.time = time;
 		this.duration = duration;
 	}
@@ -66,8 +68,20 @@ public class PitStop
 	{
 		this.lap = lap;
 	}
+	
+	
+	public int getStop()
+	{
+		return stop;
+	}
+	
+	
+	public void setStop(int stop)
+	{
+		this.stop = stop;
+	}
 
-
+	
 	public String getTime() 
 	{
 		return time;
@@ -90,8 +104,5 @@ public class PitStop
 	{
 		this.duration = duration;
 	}
-	
-	
-	
 	
 }
