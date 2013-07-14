@@ -350,6 +350,20 @@ public class ErgastAPI
 		}
 	}
 	
+	public List<Race> getResults()
+	{
+		String terminationFile = "results.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			List<Race> races = JsonHandler.getResults(jsonResponse);
+			return races;
+		}else
+		{
+			return null;
+		}
+	}
+	
 	
 	// ===========================================================
 	// Private methods
@@ -507,8 +521,8 @@ public class ErgastAPI
 		private final static String QUALIFYING_RESULTS = "QualifyingResults";
 		private final static String NUMBER = "number";
 		private final static String POSITION = "position";
-		private final static String DRIVER = "driver";
-		private final static String CONSTRUCTOR = "constructor";
+		private final static String DRIVER = "Driver";
+		private final static String CONSTRUCTOR = "Constructor";
 		private final static String Q1 = "Q1";
 		private final static String Q2 = "Q2";
 		private final static String Q3 = "Q3";
@@ -535,6 +549,18 @@ public class ErgastAPI
 		private final static String STOP = "stop";
 		private final static String DURATION = "duration";
 		private final static String PIT_STOPS = "PitStops";
+		private final static String MILLIS = "millis";
+		private final static String RANK = "rank";
+		private final static String UNITS = "units";
+		private final static String SPEED = "speed";
+		private final static String POSITION_TEXT = "positionText";
+		private final static String GRID = "grid";
+		private final static String STATUS = "status";
+		private final static String FASTEST_LAP = "FastestLap";
+		private final static String AVERAGE_SPEED = "AverageSpeed";
+		private final static String TIME_CAPS = "Time";
+		private final static String RESULTS = "Results";
+		
 		
 		private JsonHandler()
 		{
@@ -739,6 +765,35 @@ public class ErgastAPI
 			}
 		}
 		
+		
+		public static List<Race> getResults(String jsonResponse)
+		{
+			List<Race> list;
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
+			JSONArray races = getJsonArray(raceTable,RACES);
+			int lengthRaces = races.size();
+			list = new ArrayList<Race>(lengthRaces);
+			if(lengthRaces > 0)
+			{
+				for(int i = 0;i <= lengthRaces -1;i++)
+				{
+					JSONObject item = getJsonObject(races,i);
+					Race race = getRaceObject(item);
+					JSONArray results = getJsonArray(item,RESULTS);
+					List<Result> resultsList = getResults(results);
+					race.setResults(resultsList);
+					list.add(race);
+				}
+				return list;
+			}else
+			{
+				list = new ArrayList<Race>();
+				return list;
+			}
+		}
+		
 		// ===========================================================
 		// Private methods
 		// ===========================================================
@@ -940,6 +995,68 @@ public class ErgastAPI
 			String time = (String) pitStopObj.get(TIME);
 			String duration = (String) pitStopObj.get(DURATION);
 			return new PitStop(driverId,lap,stop,time,duration);
+		}
+		
+		
+		private static Time getTimeObject(JSONObject timeObj)
+		{
+			float millis = Float.parseFloat((String) timeObj.get(MILLIS));
+			String time = (String) timeObj.get(TIME);
+			return new Time(millis,time);
+		}
+		
+		
+		private static FastestLap getFastestLapObject(JSONObject fastestObj)
+		{
+			int rank = Integer.parseInt((String) fastestObj.get(RANK));
+			int lap = Integer.parseInt((String) fastestObj.get(LAP));
+			Time time = getTimeObject(getJsonObject(fastestObj,TIME));
+			return new FastestLap(rank,lap,time);
+		}
+		
+		
+		private static AverageSpeed getAverageSpeedObject(JSONObject averageObj)
+		{
+			String units = (String) averageObj.get(UNITS);
+			float speed = Float.parseFloat((String) averageObj.get(SPEED));
+			return new AverageSpeed(units,speed);
+		}
+		
+		private static Result getResultObject(JSONObject resultObj)
+		{
+			int number = Integer.parseInt((String) resultObj.get(NUMBER));
+			int position = Integer.parseInt((String) resultObj.get(POSITION));
+			String positionText = (String) resultObj.get(POSITION_TEXT);
+			int points = Integer.parseInt((String) resultObj.get(POINTS));
+			Driver driver = getDriverObject((JSONObject) resultObj.get(DRIVER));
+			Constructor constructor = getConstructorObject((JSONObject) resultObj.get(CONSTRUCTOR));
+			int grid = Integer.parseInt((String) resultObj.get(GRID));
+			int lap = Integer.parseInt((String) resultObj.get(LAP));
+			String status = (String) resultObj.get(STATUS);
+			Time time = getTimeObject((JSONObject) resultObj.get(TIME_CAPS));
+			FastestLap fastestLap = getFastestLapObject((JSONObject) resultObj.get(FASTEST_LAP));
+			AverageSpeed averageSpeed = getAverageSpeedObject((JSONObject) resultObj.get(AVERAGE_SPEED));
+			return new Result(number,position,positionText,points,driver,constructor,grid,
+					lap,status,time,fastestLap,averageSpeed);
+		}
+		
+		
+		private static List<Result> getResults(JSONArray results)
+		{
+			int lengthResults = results.size();
+			List<Result> list = new ArrayList<Result>(lengthResults);
+			if(lengthResults > 0)
+			{
+				for(int i = 0;i <= lengthResults -1;i++)
+				{
+					JSONObject item = getJsonObject(results,i);
+					list.add(getResultObject(item));
+				}
+				return list;
+			}else
+			{
+				return list;
+			}
 		}
 	}
 	/**
