@@ -175,7 +175,7 @@ public class ErgastAPI
 	}
 	
 	
-	public List<Constructor> getConstructorInfo()
+	public List<Constructor> getConstructorsInfo()
 	{
 		String terminationFile = "constructors.json";
 		String jsonResponse = getResponseFromAPI(terminationFile);
@@ -358,6 +358,21 @@ public class ErgastAPI
 		{
 			List<Race> races = JsonHandler.getResults(jsonResponse);
 			return races;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public List<Driver> getDriversInfo()
+	{
+		String terminationFile = "drivers.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			List<Driver> drivers = JsonHandler.getDriverInformation(jsonResponse);
+			return drivers;
 		}else
 		{
 			return null;
@@ -560,6 +575,8 @@ public class ErgastAPI
 		private final static String AVERAGE_SPEED = "AverageSpeed";
 		private final static String TIME_CAPS = "Time";
 		private final static String RESULTS = "Results";
+		private final static String DRIVER_TABLE = "DriverTable";
+		private final static String DRIVERS = "Drivers";
 		
 		
 		private JsonHandler()
@@ -790,6 +807,29 @@ public class ErgastAPI
 			}else
 			{
 				list = new ArrayList<Race>();
+				return list;
+			}
+		}
+		
+		
+		public static List<Driver> getDriverInformation(String jsonResponse)
+		{
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject driverTable = getJsonObject(mrData,DRIVER_TABLE);
+			JSONArray driversArray = getJsonArray(driverTable,DRIVERS);
+			if(driversArray.size() > 0)
+			{
+				int length = driversArray.size();
+				List<Driver> list = new ArrayList<Driver>(length);
+				for(int i=0;i<= length -1;i++)
+				{
+					list.add(getDriverObject(getJsonObject(driversArray,i)));
+				}
+				return list;
+			}else
+			{
+				List<Driver> list = new ArrayList<Driver>();
 				return list;
 			}
 		}
