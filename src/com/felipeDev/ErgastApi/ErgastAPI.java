@@ -66,6 +66,7 @@ public class ErgastAPI
 	public final static String LAST_TOKEN = "last";
 	public final static String YEAR = "year";
 	public final static String ROUND = "round";
+	public final static String LAPS = "laps";
 
 	private QueryValues queryValues;
 	
@@ -74,7 +75,6 @@ public class ErgastAPI
 		this.limit = 30;
 		this.offset = 0;
 		this.queryValues = new QueryValues();
-		
 	}
 	// Getters and setters
 	
@@ -1169,6 +1169,7 @@ public class ErgastAPI
 			queryValues.put(STATUS_TOKEN, null);
 			queryValues.put(YEAR, null);
 			queryValues.put(ROUND, null);
+			queryValues.put(LAPS, null);
 		}
 		
 			
