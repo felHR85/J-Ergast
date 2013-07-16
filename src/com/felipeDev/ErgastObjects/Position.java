@@ -36,15 +36,15 @@ public class Position
 	private Driver driver;
 	private Constructor constructor;
 	/** Best time in Q1 */
-	private float q1;
+	private String q1;
 	/** Best time in Q2*/
-	private float q2;
+	private String q2;
 	/** Best time in Q3*/
-	private float q3;
+	private String q3;
 	
 	
 	public Position(int number, int position, Driver driver,
-			Constructor constructor, float q1, float q2, float q3) 
+			Constructor constructor, String q1, String q2, String q3) 
 	{
 		this.number = number;
 		this.position = position;
@@ -104,37 +104,37 @@ public class Position
 	}
 
 
-	public float getQ1() 
+	public String getQ1() 
 	{
 		return q1;
 	}
 
 
-	public void setQ1(float q1)
+	public void setQ1(String q1)
 	{
 		this.q1 = q1;
 	}
 
 
-	public float getQ2() 
+	public String getQ2() 
 	{
 		return q2;
 	}
 
 
-	public void setQ2(float q2) 
+	public void setQ2(String q2) 
 	{
 		this.q2 = q2;
 	}
 
 
-	public float getQ3() 
+	public String getQ3() 
 	{
 		return q3;
 	}
 
 
-	public void setQ3(float q3)
+	public void setQ3(String q3)
 	{
 		this.q3 = q3;
 	}

@@ -884,14 +884,14 @@ public class ErgastAPI
 			List<Position> qualifyingR = new ArrayList<Position>(lengthArray);
 			for(int i = 0;i<= lengthArray -1;i++)
 			{
-				JSONObject positionObj = getJsonObject(o,i);//(JSONObject) o.get(i);
+				JSONObject positionObj = getJsonObject(o,i);
 				int number = Integer.parseInt((String) positionObj.get(NUMBER));
 				int pos = Integer.parseInt((String) positionObj.get(POSITION));
 				Driver driver = getDriverObject((JSONObject) positionObj.get(DRIVER));
 				Constructor constructor = getConstructorObject((JSONObject) positionObj.get(CONSTRUCTOR));
-				float q1 = Float.parseFloat((String) positionObj.get(Q1));
-				float q2 = Float.parseFloat((String) positionObj.get(Q2));
-				float q3 = Float.parseFloat((String) positionObj.get(Q3));
+				String q1 = (String) positionObj.get(Q1);
+				String q2 = (String) positionObj.get(Q2);
+				String q3 = (String) positionObj.get(Q3);
 				qualifyingR.add(new Position(number,pos,driver,constructor,q1,q2,q3));
 			}
 			return qualifyingR;
