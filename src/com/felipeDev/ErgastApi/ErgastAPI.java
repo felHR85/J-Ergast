@@ -760,26 +760,34 @@ public class ErgastAPI
 			JSONObject mrData = getJsonObject(o,MR_DATA);
 			JSONObject raceTable = getJsonObject(mrData,RACE_TABLE);
 			JSONArray raceArray = getJsonArray(raceTable,RACES);
-			JSONObject raceElement = getJsonObject(raceArray,0); // It will be always an array with a single object. I swear it!!!
-			Race race = getRaceObject(raceElement);
-			JSONArray pitStopsArray = getJsonArray(raceElement,PIT_STOPS);
-			int lengthPitStops = pitStopsArray.size();
-			list = new ArrayList<PitStop>(lengthPitStops);
-			if(lengthPitStops > 0)
+			int raceArraySize = raceArray.size();
+			if(raceArraySize == 1)
 			{
-				for(int i = 0;i <= lengthPitStops -1;i++)
+				JSONObject raceElement = getJsonObject(raceArray,0); // Not always. Don«t swear in vain :(
+				Race race = getRaceObject(raceElement);
+				JSONArray pitStopsArray = getJsonArray(raceElement,PIT_STOPS);
+				int lengthPitStops = pitStopsArray.size();
+				list = new ArrayList<PitStop>(lengthPitStops);
+				if(lengthPitStops > 0)
 				{
-					JSONObject item = getJsonObject(pitStopsArray,i);
-					list.add(getPitStopObject(item));
+					for(int i = 0;i <= lengthPitStops -1;i++)
+					{
+						JSONObject item = getJsonObject(pitStopsArray,i);
+						list.add(getPitStopObject(item));
+					}
+					race.setPitStops(list);
+					return race;
+				}else
+				{
+					list = new ArrayList<PitStop>();
+					race.setPitStops(list);
+					return race;
 				}
-				race.setPitStops(list);
-				return race;
 			}else
 			{
-				list = new ArrayList<PitStop>();
-				race.setPitStops(list);
-				return race;
+				return null;
 			}
+			
 		}
 		
 		
