@@ -1030,8 +1030,8 @@ public class ErgastAPI
 		private static PitStop getPitStopObject(JSONObject pitStopObj)
 		{
 			String driverId = (String) pitStopObj.get(DRIVER_ID);
-			int lap = (Integer) pitStopObj.get(LAP);
-			int stop = (Integer) pitStopObj.get(STOP);
+			int lap = Integer.parseInt((String) pitStopObj.get(LAP));
+			int stop = Integer.parseInt((String) pitStopObj.get(STOP));
 			String time = (String) pitStopObj.get(TIME);
 			String duration = (String) pitStopObj.get(DURATION);
 			return new PitStop(driverId,lap,stop,time,duration);
