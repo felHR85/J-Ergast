@@ -29,11 +29,11 @@ package com.felipeDev.ErgastObjects;
  */
 public class Time 
 {
-	private float millis;
+	private int millis;
 	private String time;
 	
 	
-	public Time(float millis, String time)
+	public Time(int millis, String time)
 	{
 		this.millis = millis;
 		this.time = time;
@@ -46,7 +46,7 @@ public class Time
 	}
 
 
-	public void setMillis(float millis) 
+	public void setMillis(int millis) 
 	{
 		this.millis = millis;
 	}
@@ -62,11 +62,5 @@ public class Time
 	{
 		this.time = time;
 	}
-	
-	
-	
-	
-	
-	
 
 }

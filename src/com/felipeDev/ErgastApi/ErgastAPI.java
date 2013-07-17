@@ -577,6 +577,7 @@ public class ErgastAPI
 		private final static String RESULTS = "Results";
 		private final static String DRIVER_TABLE = "DriverTable";
 		private final static String DRIVERS = "Drivers";
+		private final static String LAPS_LOW = "laps";
 		
 		
 		private JsonHandler()
@@ -1046,11 +1047,21 @@ public class ErgastAPI
 		}
 		
 		
-		private static Time getTimeObject(JSONObject timeObj)
+		private static Time getTimeObject(JSONObject timeObj) // Time object reference in FastestLap does not contain millis. So in that case It will be 0000000
 		{
-			float millis = Float.parseFloat((String) timeObj.get(MILLIS));
-			String time = (String) timeObj.get(TIME);
-			return new Time(millis,time);
+			Object obj = timeObj.get(MILLIS);
+			if(obj != null)
+			{
+				int millis = Integer.parseInt((String) obj);
+				String time = (String) timeObj.get(TIME);
+				return new Time(millis,time);
+			}else
+			{
+				int millis = 0000000;
+				String time = (String) timeObj.get(TIME);
+				return new Time(millis,time);
+			}
+			
 		}
 		
 		
@@ -1058,7 +1069,7 @@ public class ErgastAPI
 		{
 			int rank = Integer.parseInt((String) fastestObj.get(RANK));
 			int lap = Integer.parseInt((String) fastestObj.get(LAP));
-			Time time = getTimeObject(getJsonObject(fastestObj,TIME));
+			Time time = getTimeObject(getJsonObject(fastestObj,TIME_CAPS));
 			return new FastestLap(rank,lap,time);
 		}
 		
@@ -1079,11 +1090,38 @@ public class ErgastAPI
 			Driver driver = getDriverObject((JSONObject) resultObj.get(DRIVER));
 			Constructor constructor = getConstructorObject((JSONObject) resultObj.get(CONSTRUCTOR));
 			int grid = Integer.parseInt((String) resultObj.get(GRID));
-			int lap = Integer.parseInt((String) resultObj.get(LAP));
+			int lap = Integer.parseInt((String) resultObj.get(LAPS_LOW));
 			String status = (String) resultObj.get(STATUS);
-			Time time = getTimeObject((JSONObject) resultObj.get(TIME_CAPS));
-			FastestLap fastestLap = getFastestLapObject((JSONObject) resultObj.get(FASTEST_LAP));
-			AverageSpeed averageSpeed = getAverageSpeedObject((JSONObject) resultObj.get(AVERAGE_SPEED));
+			Object timeObj = resultObj.get(TIME_CAPS);
+			Time time;
+			if(timeObj != null)
+			{
+				time = getTimeObject((JSONObject) timeObj);
+			}else
+			{
+				time = null;
+			}
+			
+			Object fastestObj = resultObj.get(FASTEST_LAP);
+			FastestLap fastestLap;
+			if(fastestObj != null)
+			{
+				fastestLap= getFastestLapObject((JSONObject) resultObj.get(FASTEST_LAP));
+			}else
+			{
+				fastestLap = null;
+			}
+			
+			Object averageObj = resultObj.get(AVERAGE_SPEED);
+			AverageSpeed averageSpeed;
+			if(averageObj != null)
+			{
+				averageSpeed = getAverageSpeedObject((JSONObject) averageObj);
+			}else
+			{
+				averageSpeed = null;
+			}
+			
 			return new Result(number,position,positionText,points,driver,constructor,grid,
 					lap,status,time,fastestLap,averageSpeed);
 		}
