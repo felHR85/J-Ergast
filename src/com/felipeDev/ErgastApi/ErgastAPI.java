@@ -66,7 +66,6 @@ public class ErgastAPI
 	public final static String LAST_TOKEN = "last";
 	public final static String YEAR = "year";
 	public final static String ROUND = "round";
-	public final static String LAPS = "laps";
 
 	private QueryValues queryValues;
 	
@@ -206,9 +205,37 @@ public class ErgastAPI
 	}
 	
 	
+	public Race getLapTimes(int lap)
+	{
+		String terminationFile = "laps/" + String.valueOf(lap) + ".json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			Race race = JsonHandler.getLaps(jsonResponse);
+			return race;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
 	public List<Lap> getLapTimes2()
 	{
 		Race race = getLapTimes();
+		if(race != null)
+		{
+			return race.getLaps();
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public List<Lap> getLapTimes2(int lap)
+	{
+		Race race = getLapTimes(lap);
 		if(race != null)
 		{
 			return race.getLaps();
@@ -353,6 +380,21 @@ public class ErgastAPI
 	public List<Race> getResults()
 	{
 		String terminationFile = "results.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			List<Race> races = JsonHandler.getResults(jsonResponse);
+			return races;
+		}else
+		{
+			return null;
+		}
+	}
+	
+	
+	public List<Race> getResults(int position)
+	{
+		String terminationFile = "results/" + String.valueOf(position) + ".json";
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
@@ -1215,7 +1257,6 @@ public class ErgastAPI
 			queryValues.put(STATUS_TOKEN, null);
 			queryValues.put(YEAR, null);
 			queryValues.put(ROUND, null);
-			queryValues.put(LAPS, null);
 		}
 		
 			
