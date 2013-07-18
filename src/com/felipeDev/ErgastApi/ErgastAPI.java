@@ -422,6 +422,20 @@ public class ErgastAPI
 	}
 	
 	
+	public List<Status> getStatuses()
+	{
+		String terminationFile = "status.json";
+		String jsonResponse = getResponseFromAPI(terminationFile);
+		if(jsonResponse != null)
+		{
+			List<Status> statuses = JsonHandler.getStatuses(jsonResponse);
+			return statuses;
+		}else
+		{
+			return null;
+		}
+	}
+	
 	// ===========================================================
 	// Private methods
 	// ===========================================================
@@ -620,7 +634,10 @@ public class ErgastAPI
 		private final static String DRIVER_TABLE = "DriverTable";
 		private final static String DRIVERS = "Drivers";
 		private final static String LAPS_LOW = "laps";
-		
+		private final static String STATUS_ID = "statusId";
+		private final static String COUNT = "count";
+		private final static String STATUS_TABLE = "StatusTable";
+		private final static String STATUS_CAPS = "Status";
 		
 		private JsonHandler()
 		{
@@ -882,6 +899,30 @@ public class ErgastAPI
 			{
 				List<Driver> list = new ArrayList<Driver>();
 				return list;
+			}
+		}
+		
+		
+		public static List<Status> getStatuses(String jsonResponse)
+		{
+			List<Status> statusList;
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			JSONObject statusTable = getJsonObject(mrData,STATUS_TABLE);
+			JSONArray statuses = getJsonArray(statusTable,STATUS_CAPS);
+			int lengthStatuses = statuses.size();
+			if(lengthStatuses > 0)
+			{
+				statusList = new ArrayList<Status>(lengthStatuses);
+				for(int i=0; i <= lengthStatuses -1;i++)
+				{
+					statusList.add(getStatusObject((JSONObject) statuses.get(i)));
+				}
+				return statusList;
+			}else
+			{
+				statusList = new ArrayList<Status>();
+				return statusList;
 			}
 		}
 		
@@ -1186,6 +1227,16 @@ public class ErgastAPI
 				return list;
 			}
 		}
+		
+		
+		private static Status getStatusObject(JSONObject statusObj)
+		{
+			int statusId = Integer.parseInt((String) statusObj.get(STATUS_ID));
+			int count = Integer.parseInt((String) statusObj.get(COUNT));
+			String status = (String) statusObj.get(STATUS);
+			return new Status(statusId,count,status);
+		}
+		
 	}
 	/**
 	 * This class handles all query values
