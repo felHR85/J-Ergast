@@ -73,6 +73,7 @@ public class ErgastAPI
 	{
 		this.limit = 30;
 		this.offset = 0;
+		this.total = 0;
 		this.queryValues = new QueryValues();
 	}
 	// Getters and setters
@@ -102,7 +103,7 @@ public class ErgastAPI
 		return total;
 	}
 	
-	public void setTotal(int total)
+	private void setTotal(int total)
 	{
 		this.total = total;
 	}
@@ -132,6 +133,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Season> seasons = JsonHandler.getSeasons(jsonResponse);
 			return seasons;
 		}else
@@ -146,6 +148,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Race> races = JsonHandler.getQualifyingResults(jsonResponse);
 			return races;
 		}else
@@ -180,6 +183,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Constructor> constructors = JsonHandler.getConstructorInformation(jsonResponse);
 			return constructors;
 			
@@ -196,6 +200,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			Race race = JsonHandler.getLaps(jsonResponse);
 			return race;
 		}else
@@ -211,6 +216,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			Race race = JsonHandler.getLaps(jsonResponse);
 			return race;
 		}else
@@ -252,6 +258,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<StandingList> standings = JsonHandler.getStandings(jsonResponse);
 			return standings;
 		}else
@@ -268,6 +275,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<StandingList> standings = JsonHandler.getStandings(jsonResponse);
 			return standings;
 		}else
@@ -284,6 +292,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<StandingList> standings = JsonHandler.getStandings(jsonResponse);
 			return standings;
 		}else
@@ -299,6 +308,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<StandingList> standings = JsonHandler.getStandings(jsonResponse);
 			return standings;
 		}else
@@ -314,6 +324,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Circuit> circuits = JsonHandler.getCircuits(jsonResponse);
 			return circuits;
 		}else
@@ -328,6 +339,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			Race race = JsonHandler.getPitStops(jsonResponse);
 			return race;
 		}else
@@ -343,6 +355,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			Race race = JsonHandler.getPitStops(jsonResponse);
 			return race;
 		}else
@@ -383,6 +396,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Race> races = JsonHandler.getResults(jsonResponse);
 			return races;
 		}else
@@ -398,6 +412,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Race> races = JsonHandler.getResults(jsonResponse);
 			return races;
 		}else
@@ -413,6 +428,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Driver> drivers = JsonHandler.getDriverInformation(jsonResponse);
 			return drivers;
 		}else
@@ -428,6 +444,7 @@ public class ErgastAPI
 		String jsonResponse = getResponseFromAPI(terminationFile);
 		if(jsonResponse != null)
 		{
+			setTotal(JsonHandler.getTotal(jsonResponse));
 			List<Status> statuses = JsonHandler.getStatuses(jsonResponse);
 			return statuses;
 		}else
@@ -924,6 +941,13 @@ public class ErgastAPI
 				statusList = new ArrayList<Status>();
 				return statusList;
 			}
+		}
+		
+		public static int getTotal(String jsonResponse)
+		{
+			JSONObject o = getJsonObject(jsonResponse);
+			JSONObject mrData = getJsonObject(o,MR_DATA);
+			return Integer.parseInt((String) mrData.get(TOTAL));
 		}
 		
 		// ===========================================================
